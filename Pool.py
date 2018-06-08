@@ -18,9 +18,12 @@ class ProxyPool:
         if not os.path.exists(self.proxy_file):
             return
         with open(self.proxy_file,'r') as f:
-            line = f.readline()
-            line = line.split('\\')[0]
-            self.proxies.add(line)
+            line = f.readline() 
+            while line:
+                line = line.split('\n')[0] # remove the '\n' after data
+                self.proxies.add(line)
+                line = f.readline()
+
         
     # self.proxies中的代理列表保存到文件中
     def saveProxies(self):
