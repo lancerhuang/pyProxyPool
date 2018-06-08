@@ -73,7 +73,7 @@ class ProxyPool:
 
     # Recognize the image of port number
     def __portIdentify(self,img_url):
-        port_num:int = 0
+        port_num: int = 0
         pic_res = requests.get(img_url)
         f_img = 'temp_img.png'
         with open(f_img,'wb') as f:
@@ -132,3 +132,5 @@ if __name__ == '__main__':
     aPool.saveProxies()
     # print( aPool.portIdentify('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx') )
     # print( aPool.getDomainFromUrl('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx'))
+    # modification
+    
