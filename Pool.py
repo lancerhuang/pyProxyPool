@@ -5,12 +5,16 @@ import pytesseract
 import requests
 from PIL import Image
 import os
+import datetime
+import csv
+
 # 访问免费代理获取列表
 
 # 测试代理，移除无法使用的代理
 
 class ProxyPool:
-    proxies = set()
+    proxies = [] # 包含速度，格式类似 [{"proxy":proxy1, "param":speed1},{"proxy":proxy2, "param:speed2},...]
+                 # 速度单位是毫秒(ms)
     proxy_file = 'proxy_list.txt'
 
     # 读取文件中的代理列表
@@ -18,19 +22,33 @@ class ProxyPool:
         if not os.path.exists(self.proxy_file):
             return
         with open(self.proxy_file,'r') as f:
-            line = f.readline() 
-            while line:
-                line = line.split('\n')[0] # remove the '\n' after data
-                self.proxies.add(line)
-                line = f.readline()
+        #     line = f.readline() 
+        #     while line:
+        #         line = line.split('\n')[0] # remove the '\n' after data
 
-        
+        #         data = line.split(',')
+        #         proxy = data[0]
+        #         speed = data[1]
+        #         proxy_dict = {}
+        #         proxy_dict['proxy'] = proxy
+        #         proxy_dict['param'] = speed
+                
+        #         self.proxies.append( proxy_dict)
+        #         line = f.readline()
+            reader = csv.reader(f)
+            for line in reader:
+                if line != []:
+                    proxy_dict = {}
+                    proxy_dict[line[0]] = line[1]
+                    self.proxies.append(proxy_dict)
+
     # self.proxies中的代理列表保存到文件中
     def saveProxies(self):
         with open(self.proxy_file, 'w') as f:
+            writer = csv.writer(f)
             for proxy in self.proxies:
-                f.write(proxy)
-                f.write('\n')
+                for key,value in proxy.items():
+                    writer.writerow([key,value])
 
     def __getDomainFromUrl(self, url):
         index = 0
@@ -98,40 +116,63 @@ class ProxyPool:
 
         proxies_list = []
         for i in range(0,len(ip_list) - 1):
-            proxies_list.append( protocol_list[i] + '://' + ip_list[i] + ':' + port_list[i] )
-        self.proxies.update( proxies_list )
+            proxy_info = {}
+            proxy_info[protocol_list[i] + '://' + ip_list[i] + ':' + port_list[i]] = 'N/A' #未测速则设定为'N/A'
+            proxies_list.append( proxy_info )
+
+        self.proxies += proxies_list
 
     def printProxies(self):
-        for ip in self.proxies:
-            print(ip)
+        for proxy_info in self.proxies:
+            for k in proxy_info:
+                print(k,'\t',proxy_info[k])
+
+    def getSpeed(self, proxy_info):
+        for k,v in proxy_info.items():
+            return v
+        
+
+    def sortProxies(self):
+        duplicate_proxy_list = sorted(self.proxies, key=self.getSpeed )
+        self.proxies = duplicate_proxy_list
+
 
     # Test if the proxy in proxy list is good
     # If not, REMOVE IT!
     def varifyProxies(self):
         fail_list = []
-
         # Test
-        for proxy in self.proxies:
-            param_proxy = {}
-            if 'http://' in proxy:
-                param_proxy = {'http':proxy}
-            else:
-                param_proxy = {'https':proxy}
-            try:
-                requests.get('http://www.baidu.com', proxies = param_proxy, timeout = 5)
-            except:
-                # PROXY FAIL
-                fail_list.append(proxy)
-        
+        for proxy_info in self.proxies:
+            for proxy in proxy_info:
+                param_proxy = {}
+                if 'http://' in proxy:
+                    param_proxy = {'http':proxy}
+                else:
+                    param_proxy = {'https':proxy}
+                try:
+                    start_time = datetime.datetime.now()
+                    requests.get('http://www.baidu.com', proxies = param_proxy, timeout = 5)
+                    end_time = datetime.datetime.now()
+                    duration = (end_time - start_time).seconds * 1000 + (float)((end_time - start_time).microseconds/1000)
+                    proxy_info[proxy] = duration
+                except:
+                    # PROXY FAIL
+                    fail_list.append(proxy_info)
         # Remove failed proxies
-        for proxy in fail_list:
-            self.proxies.remove(proxy)
+        for proxy_info in fail_list:
+            self.proxies.remove( proxy_info )
 
 if __name__ == '__main__':
     aPool = ProxyPool()
     aPool.loadProxies()
     aPool.importFromMimvp()
     aPool.varifyProxies()
+    aPool.printProxies()
+    
+    print('------------------------------------------')
+    aPool.sortProxies()
+    aPool.printProxies()
+    
     aPool.saveProxies()
     # print( aPool.portIdentify('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx') )
     # print( aPool.getDomainFromUrl('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx'))
