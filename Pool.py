@@ -7,6 +7,7 @@ from PIL import Image
 import os
 import datetime
 import csv
+import random
 
 # 访问免费代理获取列表
 
@@ -129,7 +130,7 @@ class ProxyPool:
 
     def getSpeed(self, proxy_info):
         for k,v in proxy_info.items():
-            return v
+            return float(v)
         
 
     def sortProxies(self):
@@ -162,19 +163,29 @@ class ProxyPool:
         for proxy_info in fail_list:
             self.proxies.remove( proxy_info )
 
+    def getFastestProxy(self):
+        self.sortProxies()
+        return self.proxies[0]
+    
+    def getRandomProxy(self):
+        return self.proxies[random.randint(0,len(self.proxies) - 1)]
+        
+
 if __name__ == '__main__':
     aPool = ProxyPool()
     aPool.loadProxies()
-    aPool.importFromMimvp()
-    aPool.varifyProxies()
-    aPool.printProxies()
+    # aPool.importFromMimvp()
+    # aPool.varifyProxies()
+    # # aPool.printProxies()
     
-    print('------------------------------------------')
-    aPool.sortProxies()
-    aPool.printProxies()
+    # print('------------------------------------------')
+    # aPool.sortProxies()
+    # aPool.printProxies()
     
-    aPool.saveProxies()
+    # aPool.saveProxies()
     # print( aPool.portIdentify('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx') )
     # print( aPool.getDomainFromUrl('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx'))
     # modification
-    
+    print(aPool.getFastestProxy())
+    print(aPool.getRandomProxy())
+    print(aPool.getRandomProxy())
