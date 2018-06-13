@@ -169,6 +169,22 @@ class ProxyPool:
     
     def getRandomProxy(self):
         return self.proxies[random.randint(0,len(self.proxies) - 1)]
+
+    def getFastestProxyParam(self):
+        proxy = self.getFastestProxy()
+        for k in proxy:
+            if 'https' in k:
+                return {'https':k}
+            else:
+                return {'http':k}
+        
+    def getRandomProxyParam(self):
+        proxy = self.getRandomProxy()
+        for k in proxy:
+            if 'https' in k:
+                return {'https':k}
+            else:
+                return {'http':k}
         
 
 if __name__ == '__main__':
@@ -186,6 +202,6 @@ if __name__ == '__main__':
     # print( aPool.portIdentify('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx') )
     # print( aPool.getDomainFromUrl('https://proxy.mimvp.com/common/ygrandimg.php?id=2&port=MmziZmtvapW12cDUzMjgx'))
     # modification
-    print(aPool.getFastestProxy())
-    print(aPool.getRandomProxy())
-    print(aPool.getRandomProxy())
+    print(aPool.getFastestProxyParam())
+    print(aPool.getRandomProxyParam())
+    print(aPool.getRandomProxyParam())
